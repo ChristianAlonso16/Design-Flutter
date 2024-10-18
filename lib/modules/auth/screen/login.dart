@@ -1,4 +1,5 @@
 import 'package:cash_app/modules/auth/screen/recover_password.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Login extends StatefulWidget {
@@ -77,10 +78,24 @@ class _Login extends State<Login> {
                     height: 48,
                     width: double.infinity,
                     child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            print(
-                                'Datos => ${_emailController.text} ${_passwordController.text}');
+                            try {
+                              final credential = await FirebaseAuth.instance
+                                  .signInWithEmailAndPassword(
+                                      email: _emailController.text,
+                                      password: _passwordController.text);
+
+                              print(credential);
+                            } on FirebaseAuthException catch (e) {
+                              if (e.code == 'user-not-found') {
+                                print('No user found for that email.');
+                              } else if (e.code == 'wrong-password') {
+                                print('Wrong password provided for that user.');
+                              }
+                            } catch (e) {
+                              print(e);
+                            }
                           }
                         },
                         style: OutlinedButton.styleFrom(
@@ -92,6 +107,19 @@ class _Login extends State<Login> {
                   ),
                   const SizedBox(
                     height: 16,
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.pushNamed(context, '/register'),
+                    child: const Text(
+                      'Registrar',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 8,
                   ),
                   GestureDetector(
                     onTap: () {
